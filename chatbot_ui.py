@@ -1,21 +1,54 @@
 from tkinter import *
 import tkinter as tk
+from tkinter import ttk
 from tkinter import scrolledtext
+from dotenv import load_dotenv
+from enum import Enum
+
+import openai
 import setup_ai as chatbot
+
+load_dotenv()
+
+# Globale Variable für den Standard-Prompt
+default_prompt = ""
+class LanguageModel(Enum):
+    GPT4_TURBO = "gpt-4-1106-preview"
+    GPT4 = "gpt-4"
+    GPT3_TURBO = "gpt-3.5-turbo"
+    DAVINCI = "text-davinci-003"
+    CURIE = "text-curie-001"
 
 def send_message():
     user_message = message_input.get("1.0", tk.END).strip()
     if user_message:
         # Nachricht zur Historie hinzufügen
         add_message("Benutzer", user_message)
-
-        # Hier würden wir später die Nachricht an das Language Model senden
-        # und die Antwort hinzufügen
-        # Zum Testen fügen wir einfach eine Echo-Antwort hinzu
-        add_message("Bot", "Echo: " + user_message)
-
+        get_response(user_message)
     # Eingabefeld leeren
     message_input.delete("1.0", tk.END)
+
+def get_response(message):
+    try:
+        # Anfrage an das ausgewählte Language Model senden
+        selected_model = model_selector.get()
+        if selected_model in [LanguageModel.DAVINCI.value, LanguageModel.CURIE.value]:
+            response = openai.Completion.create(
+                engine=selected_model,
+                prompt=message,
+                max_tokens=150
+            )
+        else:
+            response = openai.ChatCompletion.create(
+                model=selected_model,
+                prompt=message,
+                temperature=0,
+            )
+            pass
+        bot_message = response.choices[0].text.strip()
+        add_message("Bot", bot_message)
+    except Exception as e:
+        add_message("Bot", f"Fehler bei der Kommunikation mit OpenAI: {e}")
 
 def add_message(sender, message):
     # Nachrichtenformatierung
@@ -32,20 +65,37 @@ def add_message(sender, message):
     # Automatisches Scrollen
     message_history.see(tk.END)
 
+def start_speech_recognition():
+    # Hier kommt die Logik für die Spracheingabe
+    pass
+
 window = Tk()
 window.title('Chatbot')
 
+# Model-Auswahl
+model_selector = ttk.Combobox(window, values=[model.value for model in LanguageModel])
+model_selector.grid(row=0, column=0, sticky='nsew')
+model_selector.set(LanguageModel.DAVINCI.value) # Standardmodell
+
+# Standard-Prompt Eingabefeld
+default_prompt_input = scrolledtext.ScrolledText(window, height=3)
+default_prompt_input.grid(row=1, column=0, columnspan=3, sticky='nsew', padx=10, pady=10)
+
 # Nachrichtenverlauf
 message_history = scrolledtext.ScrolledText(window, state='disabled', wrap='word')
-message_history.grid(row=0, column=0, columnspan=2, sticky='nsew')
+message_history.grid(row=2, column=0, columnspan=3, sticky='nsew', padx=10, pady=10)
 
 # Nachrichteneingabe
 message_input = tk.Text(window, height=3)
-message_input.grid(row=1, column=0, sticky='nsew')
+message_input.grid(row=3, column=0, sticky='nsew')
 
 # Senden-Button
 send_button = tk.Button(window, text="Senden", command=send_message)
-send_button.grid(row=1, column=1, sticky='nsew')
+send_button.grid(row=3, column=1, sticky='nsew')
+
+# Spracheingabe-Button
+speech_button = tk.Button(window, text="Spracheingabe", command=start_speech_recognition)
+speech_button.grid(row=3, column=2, sticky='nsew')
 
 # Fenstergröße und Layout
 window.columnconfigure(0, weight=1)

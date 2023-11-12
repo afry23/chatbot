@@ -1,7 +1,14 @@
+from enum import Enum
 from dotenv import load_dotenv
 import openai
 
 load_dotenv()
+class LanguageModel(Enum):
+    GPT4_TURBO = "gpt-4-1106-preview"
+    GPT4 = "gpt-4"
+    GPT3_TURBO = "gpt-3.5-turbo"
+    DAVINCI = "text-davinci-003"
+    CURIE = "text-curie-001"
 
 context = [ {'role':'system', 'content':"""
 You are a bot to help the user write code in Python.\
