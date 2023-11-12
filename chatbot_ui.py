@@ -3,24 +3,18 @@ import tkinter as tk
 from tkinter import ttk
 from tkinter import scrolledtext
 from dotenv import load_dotenv
-from enum import Enum
 from tkinter import PhotoImage
-
-import openai
 import setup_ai as chatbot
 
 load_dotenv()
 
 # Globale Variable für den Standard-Prompt
-default_prompt = ""
-class LanguageModel(Enum):
-    GPT4_TURBO = "gpt-4-1106-preview"
-    GPT4 = "gpt-4"
-    GPT3_TURBO = "gpt-3.5-turbo"
-    DAVINCI = "text-davinci-003"
-    CURIE = "text-curie-001"
+default_prompt = "You are a helpful assistant."
 
 def send_message():
+    default_prompt = default_prompt_input.get("1.0", tk.END).strip()
+    if chatbot.context == []:
+        chatbot.add_prompt(default_prompt)
     user_message = message_input.get("1.0", tk.END).strip()
     if user_message:
         # Nachricht zur Historie hinzufügen
@@ -33,20 +27,11 @@ def get_response(message):
     try:
         # Anfrage an das ausgewählte Language Model senden
         selected_model = model_selector.get()
-        if selected_model in [LanguageModel.DAVINCI.value, LanguageModel.CURIE.value]:
-            response = openai.Completion.create(
-                engine=selected_model,
-                prompt=message,
-                max_tokens=150
-            )
+        if selected_model in [chatbot.LanguageModel.DAVINCI.value, chatbot.LanguageModel.CURIE.value]:
+            response = chatbot.get_completion(message, selected_model)
         else:
-            response = openai.ChatCompletion.create(
-                model=selected_model,
-                prompt=message,
-                temperature=0,
-            )
-            pass
-        bot_message = response.choices[0].text.strip()
+            response = chatbot.get_chat_completion_from_messages(chatbot.context, selected_model)
+        bot_message = response.strip()
         add_message("Bot", bot_message)
     except Exception as e:
         add_message("Bot", f"Fehler bei der Kommunikation mit OpenAI: {e}")
@@ -55,8 +40,10 @@ def add_message(sender, message):
     # Nachrichtenformatierung
     if sender == "Benutzer":
         formatted_message = f"**{sender}**: {message}\n\n"
+        chatbot.collect_input(message)
     else:
         formatted_message = f"    **{sender}**: {message}\n\n"
+        chatbot.collect_responses(message)
 
     # Nachricht zur Historie hinzufügen
     message_history.configure(state='normal')
@@ -78,13 +65,14 @@ send_icon = PhotoImage(file='send.png')
 speech_icon = PhotoImage(file='microphone.png')
 
 # Model-Auswahl
-model_selector = ttk.Combobox(window, values=[model.value for model in LanguageModel])
+model_selector = ttk.Combobox(window, values=[model.value for model in chatbot.LanguageModel])
 model_selector.grid(row=0, column=0, padx=5, pady=2.5, sticky='nsew')
-model_selector.set(LanguageModel.GPT3_TURBO.value) # Standardmodell
+model_selector.set(chatbot.LanguageModel.GPT3_TURBO.value) # Standardmodell
 
 # Standard-Prompt Eingabefeld
 default_prompt_input = scrolledtext.ScrolledText(window, height=3)
 default_prompt_input.grid(row=1, column=0, columnspan=3, sticky='nsew', padx=5, pady=2.5)
+default_prompt_input.insert("1.0", default_prompt)
 
 # Nachrichtenverlauf
 message_history = scrolledtext.ScrolledText(window, state='disabled', wrap='word')
