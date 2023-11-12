@@ -4,6 +4,7 @@ from tkinter import ttk
 from tkinter import scrolledtext
 from dotenv import load_dotenv
 from enum import Enum
+from tkinter import PhotoImage
 
 import openai
 import setup_ai as chatbot
@@ -72,30 +73,34 @@ def start_speech_recognition():
 window = Tk()
 window.title('Chatbot')
 
+# Icons laden
+send_icon = PhotoImage(file='send.png')
+speech_icon = PhotoImage(file='microphone.png')
+
 # Model-Auswahl
 model_selector = ttk.Combobox(window, values=[model.value for model in LanguageModel])
-model_selector.grid(row=0, column=0, sticky='nsew')
-model_selector.set(LanguageModel.DAVINCI.value) # Standardmodell
+model_selector.grid(row=0, column=0, padx=5, pady=2.5, sticky='nsew')
+model_selector.set(LanguageModel.GPT3_TURBO.value) # Standardmodell
 
 # Standard-Prompt Eingabefeld
 default_prompt_input = scrolledtext.ScrolledText(window, height=3)
-default_prompt_input.grid(row=1, column=0, columnspan=3, sticky='nsew', padx=10, pady=10)
+default_prompt_input.grid(row=1, column=0, columnspan=3, sticky='nsew', padx=5, pady=2.5)
 
 # Nachrichtenverlauf
 message_history = scrolledtext.ScrolledText(window, state='disabled', wrap='word')
-message_history.grid(row=2, column=0, columnspan=3, sticky='nsew', padx=10, pady=10)
+message_history.grid(row=2, column=0, columnspan=3, sticky='nsew', padx=5, pady=2.5)
 
 # Nachrichteneingabe
 message_input = tk.Text(window, height=3)
-message_input.grid(row=3, column=0, sticky='nsew')
+message_input.grid(row=3, column=0, sticky='nsew', padx=5, pady=2.5)
 
 # Senden-Button
-send_button = tk.Button(window, text="Senden", command=send_message)
-send_button.grid(row=3, column=1, sticky='nsew')
+send_button = tk.Button(window, image=send_icon, width=30, command=send_message)
+send_button.grid(row=3, column=1, sticky='nsew', padx=5, pady=2.5)
 
 # Spracheingabe-Button
-speech_button = tk.Button(window, text="Spracheingabe", command=start_speech_recognition)
-speech_button.grid(row=3, column=2, sticky='nsew')
+speech_button = tk.Button(window, image=speech_icon, width=30, command=start_speech_recognition)
+speech_button.grid(row=3, column=2, sticky='nsew', padx=5, pady=2.5)
 
 # Fenstergröße und Layout
 window.columnconfigure(0, weight=1)
