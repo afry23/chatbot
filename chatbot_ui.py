@@ -2,14 +2,17 @@ from tkinter import *
 import tkinter as tk
 from tkinter import ttk
 from tkinter import scrolledtext
+from tkinterweb import HtmlFrame
 from dotenv import load_dotenv
 from tkinter import PhotoImage
 import setup_ai as chatbot
+import chatbot_css as html_info
 
 load_dotenv()
 
 # Globale Variable für den Standard-Prompt
 default_prompt = "You are a helpful assistant."
+
 
 def send_message():
     default_prompt = default_prompt_input.get("1.0", tk.END).strip()
@@ -18,7 +21,7 @@ def send_message():
     user_message = message_input.get("1.0", tk.END).strip()
     if user_message:
         # Nachricht zur Historie hinzufügen
-        add_message("Benutzer", user_message)
+        add_message("user", user_message)
         get_response(user_message)
     # Eingabefeld leeren
     message_input.delete("1.0", tk.END)
@@ -32,30 +35,43 @@ def get_response(message):
         else:
             response = chatbot.get_chat_completion_from_messages(chatbot.context, selected_model)
         bot_message = response.strip()
-        add_message("Bot", bot_message)
+        add_message("bot", bot_message)
     except Exception as e:
-        add_message("Bot", f"Fehler bei der Kommunikation mit OpenAI: {e}")
+        add_message("bot", f"Fehler bei der Kommunikation mit OpenAI: {e}")
 
 def add_message(sender, message):
+    global html_content
+    new_message = f"<div class='message {sender}'>{message}</div>"
+    html_content = html_content.replace("<!-- Messages go here -->", f"{new_message}<!-- Messages go here -->")
     # Nachrichtenformatierung
-    if sender == "Benutzer":
-        formatted_message = f"**{sender}**: {message}\n\n"
+    if sender == "user":
         chatbot.collect_input(message)
     else:
-        formatted_message = f"    **{sender}**: {message}\n\n"
         chatbot.collect_responses(message)
 
     # Nachricht zur Historie hinzufügen
-    message_history.configure(state='normal')
-    message_history.insert(tk.END, formatted_message)
-    message_history.configure(state='disabled')
-
-    # Automatisches Scrollen
-    message_history.see(tk.END)
+    message_history.html_content += new_message
+    message_history.load_html(message_history.html_content)
 
 def start_speech_recognition():
     # Hier kommt die Logik für die Spracheingabe
     pass
+
+# HTML-Struktur
+html_content = f"""
+<html>
+<head>
+    <style>
+    {html_info.css}
+    </style>
+</head>
+<body>
+    <div class='container'>
+        <!-- Messages go here -->
+    </div>
+</body>
+</html>
+"""
 
 window = Tk()
 window.title('Chatbot')
@@ -75,7 +91,8 @@ default_prompt_input.grid(row=1, column=0, columnspan=3, sticky='nsew', padx=5, 
 default_prompt_input.insert("1.0", default_prompt)
 
 # Nachrichtenverlauf
-message_history = scrolledtext.ScrolledText(window, state='disabled', wrap='word')
+message_history = HtmlFrame(window, horizontal_scrollbar="auto")
+message_history.html_content = html_info.html_content #"<style> .user {color: blue;} .bot {color: green;} </style>"
 message_history.grid(row=2, column=0, columnspan=3, sticky='nsew', padx=5, pady=2.5)
 
 # Nachrichteneingabe
@@ -95,30 +112,5 @@ window.columnconfigure(0, weight=1)
 window.columnconfigure(1, weight=0)
 window.rowconfigure(0, weight=1)
 window.rowconfigure(1, weight=0)
-
-# text_area = Text(window, width=120, height=50)
-# text_area.pack()
-
-# input_field = Entry(window, width=100)
-# input_field.pack()
-
-# send_button = Button(window, text="Chat!", command=lambda: send_message())
-# send_button.pack()
-
-# def send_message(event) -> None:
-#     user_input = input_field.get()
-#     input_field.delete(0, END)
-
-#     text_area.insert(END, f"You: {user_input}\n")
-#     text_area.insert(END, f"\n")
-#     chatbot.collect_input(user_input)
-
-#     response = chatbot.get_completion_from_messages(chatbot.context)
-#     chatbot.collect_responses(response)
-
-#     text_area.insert(END, f"Chatbot: {response}\n")
-#     text_area.insert(END, f"\n \n")
-
-# input_field.bind_all('<Return>', send_message)
 
 window.mainloop()
