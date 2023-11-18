@@ -12,7 +12,7 @@ body {
 
 /* Stil für Chat-Nachrichten */
 .message {
-    max-width: 90%;
+    max-width: 100%;
     margin-bottom: 10px;
     padding: 8px;
     border-radius: 15px;
@@ -31,8 +31,8 @@ body {
     background-color: #ffffff;
     align-self: flex-end;
     border-bottom-right-radius: 0;
-    text-align: right;
 }
+
 .avatar {
     width: 30px;
     height: 30px;

@@ -27,22 +27,22 @@ def send_message():
     message_input.delete("1.0", tk.END)
 
 def get_response(message):
-    add_message("bot", f'Echo: {message}')
-    # try:
-    #     # Anfrage an das ausgewählte Language Model senden
-    #     selected_model = model_selector.get()
-    #     if selected_model in [chatbot.LanguageModel.DAVINCI.value, chatbot.LanguageModel.CURIE.value]:
-    #         response = chatbot.get_completion(message, selected_model)
-    #     else:
-    #         response = chatbot.get_chat_completion_from_messages(chatbot.context, selected_model)
-    #     bot_message = response.strip()
-    #     add_message("bot", bot_message)
-    # except Exception as e:
-    #     add_message("bot", f"Fehler bei der Kommunikation mit OpenAI: {e}")
+    # add_message("bot", f'Echo: {message}')
+    try:
+        # Anfrage an das ausgewählte Language Model senden
+        selected_model = model_selector.get()
+        if selected_model in [chatbot.LanguageModel.DAVINCI.value, chatbot.LanguageModel.CURIE.value]:
+            response = chatbot.get_completion(message, selected_model)
+        else:
+            response = chatbot.get_chat_completion_from_messages(chatbot.context, selected_model)
+        bot_message = response.strip()
+        add_message("bot", bot_message)
+    except Exception as e:
+        add_message("bot", f"Fehler bei der Kommunikation mit OpenAI: {e}")
 
 def add_message(sender, message):
     global html_content
-    new_message = f"<div class='message {sender}'>{message}</div>"
+    new_message = f"<div class='message {sender}'><pre>{message}</pre></div>"
     html_content = html_content.replace("<!-- Messages go here -->", f"{new_message}<!-- Messages go here -->")
     # Nachrichtenformatierung
     if sender == "user":
