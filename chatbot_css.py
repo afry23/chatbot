@@ -12,7 +12,7 @@ body {
 
 /* Stil für Chat-Nachrichten */
 .message {
-    max-width: 100%;
+    max-width: 90%;
     margin-bottom: 10px;
     padding: 8px;
     border-radius: 15px;

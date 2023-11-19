@@ -7,6 +7,7 @@ from dotenv import load_dotenv
 from tkinter import PhotoImage
 import setup_ai as chatbot
 import chatbot_css as html_info
+import asyncio
 
 load_dotenv()
 
@@ -33,10 +34,11 @@ def get_response(message):
         selected_model = model_selector.get()
         if selected_model in [chatbot.LanguageModel.DAVINCI.value, chatbot.LanguageModel.CURIE.value]:
             response = chatbot.get_completion(message, selected_model)
+            bot_message = response.strip()
+            add_message("bot", bot_message)
         else:
             response = chatbot.get_chat_completion_from_messages(chatbot.context, selected_model)
-        bot_message = response.strip()
-        add_message("bot", bot_message)
+            add_message("bot", response)
     except Exception as e:
         add_message("bot", f"Fehler bei der Kommunikation mit OpenAI: {e}")
 
